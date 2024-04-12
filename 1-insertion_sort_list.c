@@ -1,50 +1,107 @@
 #include "sort.h"
 
 /**
-* insertion_sort_list - Sorts a doubly linked list of integers in ascending
-* order using the Insertion sort algorithm.
-* @list: A double pointer to the head of the doubly linked list.
-*
-* Description: Iterates through the list from the second node. For each node,
-* it is compared with the nodes before it and placed in the correct position
-* by swapping nodes without modifying the integer `n` of any node. After each
-* swap, the current state of the list is printed.
-*/
+ * get_head - gets the head of the list
+ * @list: the list to retrieve the head from
+ * Return: the head of the list
+ */
+listint_t *get_head(listint_t *list)
+{
+    listint_t *tmp = list;
+
+    while (tmp && tmp->prev)
+    {
+        tmp = tmp->prev;
+    }
+
+    return tmp;
+}
+
+/**
+ * swap_dll - swaps nodes in a doubly linked list
+ * @left: left node to be swapped
+ * @right: right node to be swapped
+ * Return: 0 if successful, 1 if failure
+ */
+int swap_dll(listint_t *left, listint_t *right)
+{
+    if (!left || !right)
+    {
+        return 1; /* Using 1 instead of EXIT_FAILURE for portability */
+    }
+
+    if (left->prev)
+    {
+        left->prev->next = right;
+    }
+
+    if (right->next)
+    {
+        right->next->prev = left;
+    }
+
+    left->next = right->next;
+    right->prev = left->prev;
+    left->prev = right;
+    right->next = left;
+
+    return 0; /* Using 0 instead of EXIT_SUCCESS for portability */
+}
+
+/**
+ * insertion_sort_list - sorts a doubly linked list using the insertion sort algorithm
+ * @list: double pointer to the head of the list
+ */
 void insertion_sort_list(listint_t **list)
 {
-	if (list == NULL || *list == NULL) /* Handle empty list */
-		return;
+    listint_t *big_step, *small_step;
+    unsigned int big_savespot, small_savespot, i, stat;
 
-	listint_t *current, *temp, *next;
+    if (!list || !*list)
+    {
+        return;
+    }
 
-	current = (*list)->next; /* Start from the second node */
+    big_step = small_step = *list;
+    big_savespot = small_savespot = i = 0;
 
-	/* Iterate over the list */
-	while (current != NULL)
-	{
-		next = current->next;
-		temp = current->prev;
+    while (big_step)
+    {
+        small_step = big_step;
+        small_savespot = big_savespot;
 
-		/* Find the correct position for the current node */
-		while (temp != NULL && current->n < temp->n)
-		{
-			/* Swap nodes */
-			current->prev = temp->prev;
-			temp->next = current->next;
-			if (current->next != NULL)
-				current->next->prev = temp;
-			if (temp->prev != NULL)
-				temp->prev->next = current;
-			else
-				*list = current;
-			current->next = temp;
-			temp->prev = current;
+        while (small_step->prev && small_step->n < small_step->prev->n)
+        {
+            stat = swap_dll(small_step->prev, small_step);
 
-			/* Print list after swap */
-			print_list(*list);
+            if (stat == 1)
+            {
+                return;
+            }
 
-			temp = current->prev;
-		}
-		current = next;
-	}
+            small_step = get_head(*list);
+
+            for (i = 0; i < small_savespot; ++i)
+            {
+                small_step = small_step->next;
+            }
+
+            small_step = small_step->prev;
+            --small_savespot;
+
+            print_list(get_head(*list));
+        }
+
+        big_step = get_head(*list);
+
+        for (i = 0; i < big_savespot; ++i)
+        {
+            big_step = big_step->next;
+        }
+
+        ++big_savespot;
+        big_step = big_step->next;
+    }
+
+    *list = get_head(*list);
 }
